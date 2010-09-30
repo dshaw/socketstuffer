@@ -8,7 +8,7 @@ var http        = require('http'),
 var fileServer  = new static.Server('./public')
     port        = parseInt(process.env.PORT) || 8888,
     debug       = true,
-    rebroadcast = (process.ARGV[2] === '-r' || process.ARGV[2] === '-rebroadcast'),
+    rebroadcast = (true || process.ARGV[2] === '-r' || process.ARGV[2] === '-rebroadcast'),
     connections = {
       count: 0
     };
