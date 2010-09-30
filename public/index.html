@@ -45,7 +45,7 @@
 
       var supportsWebSockets  = ('WebSocket' in window),
           connections         = new Array(sockets);
-      connections.server      = 'ws://localhost:8888/';
+      connections.server      = 'ws://'+location.host+'/';
       connections.currIndex   = -1;
       connections.initialized = false;
       connections.init = function(wsServer) {
