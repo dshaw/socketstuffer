@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<head>
+  <meta charset=utf-8>
+  <title>SocketStuffer</title>
+  <style>
+    body { margin: 0; overflow: hidden; font-family: sans-serif; }
+    #c { position: absolute; top: 0; left: 0; cursor: crosshair }
+    header, footer {
+      position: absolute; display: block; padding: .2em;
+      width: 100%; vertical-align: middle; text-align: center; z-index: 2;
+      background-color: rgba(255,255,255,0.5);
+      -moz-text-shadow: rgba(0,0,0,0.1) 0px 2px 5px;
+      -webkit-text-shadow: rgba(0,0,0,0.1) 0px 2px 5px;
+      text-shadow: rgba(0,0,0,0.1) 0px 2px 5px;
+      -moz-box-shadow: 0 .1em .2em rgba(0,0,0,0.5);
+      -webkit-box-shadow: 0 .1em .2em rgba(0,0,0,0.5);
+      box-shadow: 0 .1em .2em rgba(0,0,0,0.5);
+    }
+    header { top: 0 }
+    header a { width: 9em; margin: 0 1em; display: inline-block }
+    footer { bottom: 0; font-size: .6em }
+    h1 { display: inline }
+    #status.open { background-color:rgba(0,255,0,0.2) !important }
+    #status.closed { background-color:rgba(255,0,0,0.2) !important }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SocketStuffer</h1>
+  </header>
+  <canvas id=c></canvas>
+  <footer id=status></footer>
+
+  <script>
+    (function(window, document) {
+      var debug     = true,
+          connect   = 72,
+          stop      = document.getElementById('stop'),
+          wsStatus  = document.getElementById('status'),
+          canvas    = document.getElementById('c'),
+          ctx       = canvas.getContext('2d');
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      var supportsWebSockets  = ('WebSocket' in window),
+          connections         = new Array(connect);
+      connections.server      = 'ws://localhost:8888/';
+      connections.currIndex   = -1;
+      connections.initialized = false;
+      connections.init = function(wsServer) {
+        if(!this.initialized && this.next() !== null) {
+          console.log(this);
+          this[this.currIndex] = new Connection(this.server, null, this.currIndex);
+        } else {
+          this.initialized = true;
+          this.currIndex = 0;
+        }
+      };
+      connections.next = function() {
+        return this.currIndex = (this.currIndex < this.length-1)
+                              ? this.currIndex+1
+                              : ((this.initialized) ? 0 : null);
+      };
+
+      // nerf console
+      window.console = window.console || {
+        log: function() {},
+        warn: function() {},
+        error: function() {}
+      };
+
+      var Connection = window.Connection = function Connection(url, protocol, connectionNumber) {
+        var connection = new WebSocket(url);
+        connection.num = connectionNumber;
+
+        connection.onopen = function( event ) {
+          console.log('initializing %s', this.num);
+          if (this.num === 0) {
+            wsStatus.innerHTML = '';
+          }
+          wsStatus.innerHTML += ' [ '+this.num+' Open ]';
+          wsStatus.title = 'Socket Opened';
+          wsStatus.className = 'open';
+          connection.send('connected');
+          connections.init();
+        };
+
+        connection.onmessage = function( message ) {
+          try {
+            var msg = JSON.parse(message.data);
+            console.log(msg);
+            if (msg.data.x && msg.data.y) {
+              drawCircle(msg.data.x, msg.data.y, 'confirm', connection.num);
+            }
+          } catch (e) {
+            //console.log(connection.num + ': ' +message.data);
+          }
+        };
+
+        connection.onclose = function( event ) {
+          wsStatus.innerHTML = '[ Disconnected ]';
+          wsStatus.title = 'Socket Closed';
+          wsStatus.className = 'closed';
+        };
+
+        return connection;
+      };
+
+      if (supportsWebSockets) {
+        connections.init();
+      }
+
+      function drawCircle(x, y, type, num) {
+        var num = num || 0;
+        var types = {
+          'click': {
+            size: 5,
+            fillStyle: 'rgba(163,208,227,0.5)', //'#A3D0E3'
+            strokeStyle: 'rgba(0,51,102,0.8)' //'#036'
+          },
+          'confirm': {
+            size: num,
+            fillStyle: 'rgba(255,255,255,0.01)',
+            strokeStyle: 'rgba('+num+',0,0,0.5)'
+          }
+        };
+        ctx.fillStyle = types[type].fillStyle;
+        ctx.strokeStyle = types[type].strokeStyle;
+        ctx.beginPath();
+        ctx.arc(x,y,types[type].size,0,Math.PI*2,true);
+        ctx.closePath();
+        ctx.fill();
+        console.log(ctx.strokeStyle.length);
+        ctx.stroke();
+      }
+
+      window.onclick = function(event) {
+        if (!connections.initialized) {
+          return;
+        }
+        // simulate pageX/pageY
+        if (event.pageX ==  null) {
+          var d = (document.documentElement && document.documentElement.scrollLeft != null)
+              ? document.documentElement
+              : document.body;
+          event.pageX = event.clientX + d.scrollLeft;
+          event.pageY = event.clientY + d.scrollTop;
+        }
+
+        drawCircle(event.pageX,event.pageY,'click');
+
+        connections.forEach(function(connection) {
+          var data = { type: 'click', data: { x: event.pageX, y: event.pageY} }
+          connection.send( JSON.stringify(data) );
+        });
+        //if (debug) console.log(event);
+        return false;
+      };
+
+    })(window, document);
+  </script>
+</body>
+</html>
