@@ -34,7 +34,7 @@
   <script>
     (function(window, document) {
       var debug     = true,
-          sockets   = parseInt(location.hash.slice(1)) || 72,
+          sockets   = parseInt(location.hash.slice(1)) || 24,
           stop      = document.getElementById('stop'),
           wsStatus  = document.getElementById('status'),
           canvas    = document.getElementById('c'),
@@ -90,8 +90,8 @@
           try {
             var msg = JSON.parse(message.data);
             //if (debug) console.log(msg);
-            if (msg.data.x && msg.data.y) {
-              drawCircle(msg.data.x, msg.data.y, 'confirm', connection.num);
+            if (msg.type && msg.data.x && msg.data.y) {
+              drawCircle(msg.data.x, msg.data.y, msg.type, connection.num);
             }
           } catch (e) {
             //console.log(connection.num + ': ' +message.data);
@@ -125,8 +125,8 @@
             strokeStyle: 'rgba('+num+',0,0,0.5)'
           },
           'rebroadcast': {
-            size: num*1.2,
-            fillStyle: 'rgba(0,0,0,0.01)',
+            size: num*num,
+            fillStyle: 'rgba(255,255,255,0.01)',
             strokeStyle: 'rgba(0,'+num+',0,0.1)'
           }
         };
