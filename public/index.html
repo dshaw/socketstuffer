@@ -34,16 +34,17 @@
   <script>
     (function(window, document) {
       var debug     = true,
-          connect   = 72,
+          sockets   = parseInt(location.hash.slice(1)) || 72,
           stop      = document.getElementById('stop'),
           wsStatus  = document.getElementById('status'),
           canvas    = document.getElementById('c'),
           ctx       = canvas.getContext('2d');
+      location.hash = sockets;
       canvas.width  = window.innerWidth;
       canvas.height = window.innerHeight;
 
       var supportsWebSockets  = ('WebSocket' in window),
-          connections         = new Array(connect);
+          connections         = new Array(sockets);
       connections.server      = 'ws://localhost:8888/';
       connections.currIndex   = -1;
       connections.initialized = false;
