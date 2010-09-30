@@ -50,7 +50,7 @@
       connections.initialized = false;
       connections.init = function(wsServer) {
         if(!this.initialized && this.next() !== null) {
-          console.log(this);
+          //if (debug) console.log(this);
           this[this.currIndex] = new Connection(this.server, null, this.currIndex);
         } else {
           this.initialized = true;
@@ -75,7 +75,7 @@
         connection.num = connectionNumber;
 
         connection.onopen = function( event ) {
-          console.log('initializing %s', this.num);
+          //if (debug) console.log('initializing %s', this.num);
           if (this.num === 0) {
             wsStatus.innerHTML = '';
           }
@@ -89,7 +89,7 @@
         connection.onmessage = function( message ) {
           try {
             var msg = JSON.parse(message.data);
-            console.log(msg);
+            //if (debug) console.log(msg);
             if (msg.data.x && msg.data.y) {
               drawCircle(msg.data.x, msg.data.y, 'confirm', connection.num);
             }
@@ -123,6 +123,11 @@
             size: num,
             fillStyle: 'rgba(255,255,255,0.01)',
             strokeStyle: 'rgba('+num+',0,0,0.5)'
+          },
+          'rebroadcast': {
+            size: num*1.2,
+            fillStyle: 'rgba(0,0,0,0.01)',
+            strokeStyle: 'rgba(0,'+num+',0,0.1)'
           }
         };
         ctx.fillStyle = types[type].fillStyle;
@@ -131,7 +136,6 @@
         ctx.arc(x,y,types[type].size,0,Math.PI*2,true);
         ctx.closePath();
         ctx.fill();
-        console.log(ctx.strokeStyle.length);
         ctx.stroke();
       }
 
@@ -154,7 +158,6 @@
           var data = { type: 'click', data: { x: event.pageX, y: event.pageY} }
           connection.send( JSON.stringify(data) );
         });
-        //if (debug) console.log(event);
         return false;
       };
 

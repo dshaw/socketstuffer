@@ -8,6 +8,7 @@ var http        = require('http'),
 var fileServer  = new static.Server('./public')
     port        = parseInt(process.env.PORT) || 8888,
     debug       = true,
+    rebroadcast = (process.ARGV[2] === '-r' || process.ARGV[2] === '-rebroadcast'),
     connections = {
       count: 0
     };
@@ -20,6 +21,8 @@ var server = ws.createServer({ debug: true }, http.createServer());
 server.on("listening", function() {
   console.log('Server listening on port :' + port);
   console.log("Listening for web socket connections on port :" + port);
+  if (rebroadcast) {
+    console.log('Rebroadcasting enabled');  }
 });
 
 server.on('request', function(request, response) {
@@ -43,8 +46,12 @@ server.on('connection', function(connection) {
       var msg = JSON.parse(message);
       if (msg.type === 'click') {
         msg.type = 'confirm';
+        server.send(connection.id, JSON.stringify(msg));
+        if (rebroadcast) {
+          msg.type = 'rebroadcast';  
+          server.broadcast(JSON.stringify(msg));
+        }
       }
-      server.send(connection.id, JSON.stringify(msg));
     } catch (e) {}
   });
 });
