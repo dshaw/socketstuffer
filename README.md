@@ -8,7 +8,7 @@ Provide tools to test the performance of Web Socket based applications.
 
 *NOTE: SocketStuffer is still under development.*
 
-If this project interests you, you should check out Peter Griess's http://github.com/pgriess/wsbench .
+If this project interests you, you should check out [Peter Griess's wsbench](http://github.com/pgriess/wsbench).
 
 # Dependencies #
 
